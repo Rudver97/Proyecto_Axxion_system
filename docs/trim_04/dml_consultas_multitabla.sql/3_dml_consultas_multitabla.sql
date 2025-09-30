@@ -42,19 +42,26 @@
 -- 1.1. Crear una Tabla a partir de Otra. ---------------------------------------------- --
 --      CREATE TABLE __ SELECT __ FROM __ WHERE __ = __ : ------------------------------ --
 -- ------------------------------------------------------------------------------------- --
-CREATE TABLE PEDIDOS_BOGOTA SELECT * FROM PEDIDOS
-WHERE ciudad_pedido = 'Bogotá';
-
--- -------------------------------------------
-DELETE FROM PEDIDOS 
-WHERE ciudad_pedido = 'Bogotá';
+-- Queremos crear una tabla de "archivo" con todos los alquileres que ya fueron completados.
+-- La nueva tabla 'alquileres_completados' se creará con la estructura y los datos del SELECT.
+CREATE TABLE alquileres_completados 
+AS
+SELECT * 
+FROM alquileres 
+WHERE estado = 'completado';
 
 -- ------------------------------------------------------------------------------------- --
 -- 1.2. Datos Anexados. ---------------------------------------------------------------- --
 --      INSERT INTO __ SELECT __ FROM __ : --------------------------------------------- --
 -- ------------------------------------------------------------------------------------- --
-INSERT INTO PEDIDOS SELECT * FROM PEDIDOS_BOGOTA;
-DROP TABLE PEDIDOS_BOGOTA;
+-- Primero, creamos una tabla para un registro histórico de mantenimientos.
+CREATE TABLE mantenimientos_historico LIKE mantenimientos; -- 'LIKE' copia la estructura, no los datos.
+
+-- Ahora, insertamos en nuestra tabla histórica todos los mantenimientos realizados antes de 2023.
+INSERT INTO mantenimientos_historico
+SELECT * 
+FROM mantenimientos 
+WHERE YEAR(fecha_inicio) < 2023;
 
 
 /* ************************************************************************************* */
@@ -66,32 +73,16 @@ DROP TABLE PEDIDOS_BOGOTA;
 -- 2.1. Unión Externa. ----------------------------------------------------------------- --
 --      UNION, UNION ALL : ------------------------------------------------------------- --
 -- ------------------------------------------------------------------------------------- --
+-- Obtener una lista única de todos los contactos de la empresa (clientes y proveedores).
+-- Si un cliente también es proveedor con el mismo nombre y teléfono, solo aparecerá una vez.
+SELECT nombre, telefono, 'Cliente' AS tipo_contacto FROM clientes
+UNION
+SELECT nombre, telefono, 'Proveedor' AS tipo_contacto FROM proveedores;
 
--- ------------------------------------------------------------------------------------- --
--- 2.1.1. UNION. ----------------------------------------------------------------------- --
---        SELECT __ FROM __ UNION SELECT __ FROM __ : ---------------------------------- --
--- ------------------------------------------------------------------------------------- --
-SELECT * FROM PRODUCTOS UNION 
-SELECT * FROM PRODUCTOS_NUEVOS;
-
-SELECT * FROM PRODUCTOS WHERE codigo_categoria = 2 UNION 
-SELECT * FROM PRODUCTOS_NUEVOS WHERE codCat = 2;
-
-SELECT * FROM PRODUCTOS WHERE precio_producto > 5000 UNION 
-SELECT * FROM PRODUCTOS_NUEVOS WHERE codCat = 4 AND artPrec > 5000;
-
-SELECT codigo_categoria, nombre_producto, precio_producto 
-FROM PRODUCTOS WHERE precio_producto > 5000 UNION 
-SELECT codCat, artNom, artPrec 
-FROM PRODUCTOS_NUEVOS WHERE codCat = 4 AND artPrec > 5000;
-
--- ------------------------------------------------------------------------------------- --
--- 2.1.2. UNION ALL. ------------------------------------------------------------------- --
---        SELECT __ FROM __ UNION ALL SELECT __ FROM __ : ------------------------------ --
--- ------------------------------------------------------------------------------------- --
-SELECT * FROM PRODUCTOS UNION ALL
-SELECT * FROM PRODUCTOS_NUEVOS;
-
+-- Misma consulta, pero si hay duplicados, los mostrará. Es más rápida porque no verifica duplicados.
+SELECT nombre, telefono, 'Cliente' AS tipo_contacto FROM clientes
+UNION ALL
+SELECT nombre, telefono, 'Proveedor' AS tipo_contacto FROM proveedores;
 
 -- ------------------------------------------------------------------------------------- --
 -- 2.2. Unión Interna. ----------------------------------------------------------------- --
@@ -102,188 +93,109 @@ SELECT * FROM PRODUCTOS_NUEVOS;
 -- 2.2.1. INNER JOIN. ------------------------------------------------------------------ --
 --        SELECT __ FROM __ INNER JOIN __ ON __.__ = __.__ : --------------------------- --
 -- ------------------------------------------------------------------------------------- --
-SELECT * FROM CLIENTES INNER JOIN PEDIDOS
-ON clientes.codigo_customer = pedidos.codigo_customer;
-
-SELECT * FROM CREDENCIALES AS CR
-INNER JOIN CLIENTES AS CL
-ON credenciales.codigo_cred = clientes.codigo_customer
-INNER JOIN PEDIDOS AS PD
-ON clientes.codigo_customer = pedidos.codigo_customer;
-
-SELECT * FROM USUARIOS
-INNER JOIN CREDENCIALES
-ON usuarios.codigo_user = credenciales.codigo_cred 
-INNER JOIN CLIENTES
-ON credenciales.codigo_cred = clientes.codigo_customer
-INNER JOIN PEDIDOS
-ON clientes.codigo_customer = pedidos.codigo_customer;
-
-SELECT * FROM USUARIOS 
-INNER JOIN CREDENCIALES
-ON usuarios.codigo_user = credenciales.codigo_cred
-INNER JOIN PEDIDOS
-ON credenciales.codigo_cred = pedidos.codigo_customer;
+SELECT DISTINCT c.nombre, c.email
+FROM clientes AS c
+INNER JOIN alquileres AS a ON c.id = a.cliente_id
+INNER JOIN alquiler_detalles AS ad ON a.id = ad.alquiler_id
+INNER JOIN productos AS p ON ad.producto_id = p.id
+INNER JOIN subcategorias AS sc ON p.subcategoria_id = sc.id
+WHERE sc.nombre LIKE '%Micrófonos%';
 
 -- ------------------------------------------------------------------------------------- --
 -- 2.2.1.1. Con repeticiones. ---------------------------------------------------------- --
 --          SELECT __ FROM __ INNER JOIN __ ON __.__ = __.__ : ------------------------- --
 -- ------------------------------------------------------------------------------------- --
-## Consultar los Usuarios
-SELECT R.codigo_rol, nombre_rol, codigo_user, nombres_user, apellidos_user, correo_user
-FROM ROLES AS R
-INNER JOIN USUARIOS AS U
-ON R.codigo_rol = U.codigo_rol;
-
--- ------------------------------------------------------------------------------------- --
-## Consultar todos los Stakeholders
-SELECT codigo_pedido, codigo_user, nombres_user, apellidos_user, correo_user,
-identificacion_cred, fecha_pedido, ciudad_pedido, total_pr_pedido, estado_pedido
-FROM USUARIOS 
-INNER JOIN CREDENCIALES
-ON usuarios.codigo_user = credenciales.codigo_cred
-INNER JOIN PEDIDOS
-ON credenciales.codigo_cred = pedidos.codigo_customer;
-
--- ------------------------------------------------------------------------------------- --
-## Consultar
-SELECT codigo_pedido, codigo_user, nombres_user, apellidos_user, correo_user,
-identificacion_cred, fecha_pedido, ciudad_pedido, total_pr_pedido, estado_pedido
-FROM USUARIOS 
-INNER JOIN CREDENCIALES
-ON usuarios.codigo_user = credenciales.codigo_cred
-INNER JOIN PEDIDOS
-ON credenciales.codigo_cred = pedidos.codigo_customer;
-
+-- Mostrar el nombre del producto y el nombre del cliente que lo alquiló.
+-- Un producto puede aparecer varias veces si ha sido alquilado por diferentes clientes.
+SELECT p.nombre AS producto, c.nombre AS cliente
+FROM alquiler_detalles AS ad
+INNER JOIN productos AS p ON ad.producto_id = p.id
+INNER JOIN alquileres AS a ON ad.alquiler_id = a.id
+INNER JOIN clientes AS c ON a.cliente_id = c.id;
 -- ------------------------------------------------------------------------------------- --
 -- 2.2.1.2. Sin repeticiones. ---------------------------------------------------------- --
 --          SELECT DISTINCT __ FROM __ INNER JOIN __ ON __.__ = __.__ : ---------------- --
 -- ------------------------------------------------------------------------------------- --
-SELECT DISTINCT codigo_user
-FROM USUARIOS 
-INNER JOIN CREDENCIALES
-ON usuarios.codigo_user = credenciales.codigo_cred
-INNER JOIN PEDIDOS
-ON credenciales.codigo_cred = pedidos.codigo_customer;
-
-
+-- Mostrar una lista de clientes que HAN alquilado algo (cada cliente aparece solo una vez).
+SELECT DISTINCT c.nombre
+FROM clientes AS c
+INNER JOIN alquileres AS a ON c.id = a.cliente_id;
 -- ------------------------------------------------------------------------------------- --
 -- 2.2.1.2. Condicionada. -------------------------------------------------------------- --
 --          WHERE, OPERADORES, ORDER BY : ---------------------------------------------- --
 -- ------------------------------------------------------------------------------------- --
-SELECT codigo_pedido, codigo_user, nombres_user, apellidos_user, correo_user,
-identificacion_cred, fecha_pedido, ciudad_pedido, total_pr_pedido, estado_pedido
-FROM USUARIOS 
-INNER JOIN CREDENCIALES
-ON usuarios.codigo_user = credenciales.codigo_cred
-INNER JOIN PEDIDOS
-ON credenciales.codigo_cred = pedidos.codigo_customer
-WHERE estado_pedido = "entregado" OR estado_pedido = "enviado"
-ORDER BY total_pr_pedido DESC;
-
-SELECT codigo_pedido, codigo_user, nombres_user, apellidos_user, correo_user,
-identificacion_cred, fecha_pedido, ciudad_pedido, total_pr_pedido, estado_pedido
-FROM USUARIOS 
-INNER JOIN CREDENCIALES
-ON usuarios.codigo_user = credenciales.codigo_cred
-INNER JOIN PEDIDOS
-ON credenciales.codigo_cred = pedidos.codigo_customer
-WHERE ciudad_pedido = "Medellín" AND estado_pedido = "entregado"
-ORDER BY total_pr_pedido DESC;
-
-SELECT pedidos.codigo_pedido, codigo_customer, productos.codigo_producto, 
-nombre_producto, precio_producto, cantidad_productos, 
-(precio_producto * cantidad_productos) AS total_parcial,
-ROUND((precio_producto * cantidad_productos) * 0.19, 2) AS iva,
-(precio_producto * cantidad_productos) + 
-ROUND((precio_producto * cantidad_productos) * 0.19, 2) AS total,
-total_pr_pedido AS total_pagar
-FROM PEDIDOS
-INNER JOIN LISTA_PRODUCTOS_PEDIDOS
-ON pedidos.codigo_pedido = LISTA_PRODUCTOS_PEDIDOS.codigo_pedido
-INNER JOIN PRODUCTOS
-ON LISTA_PRODUCTOS_PEDIDOS.codigo_producto = productos.codigo_producto
-WHERE pedidos.codigo_pedido = 'pedido-6';
+-- Mostrar los productos alquilados por 'Juan Pérez' (ID 1), ordenados por fecha de alquiler.
+SELECT p.nombre, a.fecha_salida
+FROM alquiler_detalles AS ad
+INNER JOIN productos AS p ON ad.producto_id = p.id
+INNER JOIN alquileres AS a ON ad.alquiler_id = a.id
+WHERE a.cliente_id = 1
+ORDER BY a.fecha_salida DESC;
 
 -- ------------------------------------------------------------------------------------- --
 -- 2.2.2. LEFT JOIN. ------------------------------------------------------------------- --
 --        SELECT __ FROM __ LEFT JOIN __ ON __.__ = __.__ : ---------------------------- --
 -- ------------------------------------------------------------------------------------- --
 
-SELECT codigo_pedido, codigo_user, nombres_user, apellidos_user, correo_user,
-identificacion_cred, fecha_pedido, ciudad_pedido, total_pr_pedido, estado_pedido
-FROM USUARIOS
-INNER JOIN CREDENCIALES
-ON usuarios.codigo_user = credenciales.codigo_cred 
-INNER JOIN CLIENTES
-ON credenciales.codigo_cred = clientes.codigo_customer
-LEFT JOIN PEDIDOS
-ON clientes.codigo_customer = pedidos.codigo_customer;
+-- Mostrar TODOS los productos y, si han tenido mantenimiento, mostrar la fecha del mismo.
+-- Los productos que nunca han tenido mantenimiento también aparecerán en la lista.
+SELECT p.nombre, m.tipo_mantenimiento, m.fecha_inicio
+FROM productos AS p
+LEFT JOIN mantenimientos AS m ON p.id = m.producto_id;
 
-SELECT codigo_pedido, codigo_user, nombres_user, 
-apellidos_user, correo_user, identificacion_cred
-FROM USUARIOS
-INNER JOIN CREDENCIALES
-ON usuarios.codigo_user = credenciales.codigo_cred 
-INNER JOIN CLIENTES
-ON credenciales.codigo_cred = clientes.codigo_customer
-LEFT JOIN PEDIDOS
-ON clientes.codigo_customer = pedidos.codigo_customer
-WHERE codigo_pedido IS NULL;
+-- TRUCO: Para encontrar productos que NUNCA han tenido mantenimiento.
+SELECT p.nombre
+FROM productos AS p
+LEFT JOIN mantenimientos AS m ON p.id = m.producto_id
+WHERE m.id IS NULL; -- Filtramos donde no hubo coincidencia.
 
 -- ------------------------------------------------------------------------------------- --
 -- 2.2.3. RIGHT JOIN. ------------------------------------------------------------------ --
 --        SELECT __ FROM __ RIGHT JOIN __ ON __.__ = __.__ : --------------------------- --
 -- ------------------------------------------------------------------------------------- --
-SELECT * FROM CLIENTES
-RIGHT JOIN PEDIDOS
-ON clientes.codigo_customer = pedidos.codigo_customer;
-
--- NOTA: Esta consulta no Funciona, ya que cada pedido tiene asociado un cliente. No 
---       puede existir pedidos sin clientes
+-- Mostrar TODAS las subcategorías y los productos que pertenecen a ellas.
+-- Si una subcategoría no tiene ningún producto, aún así aparecerá.
+SELECT p.nombre, sc.nombre AS subcategoria
+FROM productos AS p
+RIGHT JOIN subcategorias AS sc ON p.subcategoria_id = sc.id;
 -- ------------------------------------------------------------------------------------- --
 
 -- ------------------------------------------------------------------------------------- --
 -- 2.3. Subconsultas. ------------------------------------------------------------------ --
 --      IN, NOT IN, ANY, ALL : --------------------------------------------------------- --
 -- ------------------------------------------------------------------------------------- --
-
 -- ------------------------------------------------------------------------------------- --
 -- 2.3.1. Escalonada. ------------------------------------------------------------------ --
 --        SELECT __ FROM __ WHERE __ IN (SELECT __ FROM __ WHERE __ ) : ---------------- --
 -- ------------------------------------------------------------------------------------- --
 
-SELECT nombre_producto, precio_producto 
-FROM PRODUCTOS 
-INNER JOIN LISTA_PRODUCTOS 
-ON productos.codigo_producto = lista_productos.codigo_producto
-WHERE cantidad_productos > 3;
+-- Mostrar todos los productos que pertenecen a la categoría 'Equipo de Audio' (ID 2).
+-- Paso 1: La subconsulta obtiene los IDs de las subcategorías de 'Equipo de Audio'.
+-- Paso 2: La consulta principal busca productos cuyo subcategoria_id esté en esa lista.
+SELECT nombre, estado
+FROM productos
+WHERE subcategoria_id IN (SELECT id FROM subcategorias WHERE categoria_id = 2);
 
-SELECT nombre_producto, precio_producto 
-FROM PRODUCTOS 
-WHERE codigo_producto IN 
-(SELECT codigo_producto FROM LISTA_PRODUCTOS WHERE cantidad_productos > 3);
-
-SELECT nombre_producto, precio_producto 
-FROM PRODUCTOS 
-WHERE codigo_producto NOT IN 
-(SELECT codigo_producto FROM LISTA_PRODUCTOS WHERE cantidad_productos > 3);
-
-SELECT nombres_user, apellidos_user, correo_user 
-FROM USUARIOS
-WHERE codigo_user IN
-(SELECT codigo_cred FROM CREDENCIALES WHERE codigo_cred LIKE '%customer%');
-
--- ------------------------------------------------------------------------------------- --
--- 2.3.2. Lista. ----------------------------------------------------------------------- --
---        SELECT __ FROM __ WHERE __ IN (SELECT __ FROM __ WHERE __ ) : ---------------- --
--- ------------------------------------------------------------------------------------- --
-
+-- Lo opuesto: Mostrar productos que NO son 'Equipo de Audio'.
+SELECT nombre, estado
+FROM productos
+WHERE subcategoria_id NOT IN (SELECT id FROM subcategorias WHERE categoria_id = 2);
 -- ------------------------------------------------------------------------------------- --
 -- 2.3.3. Correlacionada. -------------------------------------------------------------- --
 --        SELECT __ FROM __ WHERE __ IN (SELECT __ FROM __ WHERE __ ) : ---------------- --
 -- ------------------------------------------------------------------------------------- --
-
+-- Encontrar productos cuyo stock es mayor que el promedio de stock de su PROPIA subcategoría.
+-- Para cada producto (p1), la subconsulta calcula el promedio de stock
+-- SOLO para la subcategoría de ese producto en particular.
+SELECT 
+    p1.nombre, 
+    p1.stock
+FROM productos AS p1
+WHERE p1.stock > (
+    SELECT AVG(p2.stock) 
+    FROM productos AS p2 
+    WHERE p2.subcategoria_id = p1.subcategoria_id -- La correlación está aquí.
+);
 
 /* ************************************************************************************* */
 /* ------------------------------ 3. CONSULTAS DE ACCIÓN ------------------------------- */

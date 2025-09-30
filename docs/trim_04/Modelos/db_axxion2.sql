@@ -9,204 +9,142 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,N
 -- -----------------------------------------------------
 -- Schema Inventario_axxion
 -- -----------------------------------------------------
+drop database if exists Inventario_axxion;
 CREATE SCHEMA  Inventario_axxion DEFAULT CHARACTER SET utf8 ;
 USE Inventario_axxion ;
-drop database db_prueba;
+
 -- ----------------------------------------------------
 
 -- -----------------------------------------------------
--- Table categorias
--- -----------------------------------------------------
-CREATE TABLE  categorias (
-  id INT(10) NOT NULL AUTO_INCREMENT,
+-- Usamos nombres de tabla en plural y minúscula para consistencia.
+CREATE TABLE categorias (
+  id INT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(200) NOT NULL,
-  estado TINYINT(10) NOT NULL,
-  descripción TIMESTAMP NOT NULL,
-  PRIMARY KEY (id))
-ENGINE = InnoDB;
--- -----------------------------------------------------
--- Table Subcategorias
--- -----------------------------------------------------
-CREATE TABLE Subcategorias (
-  id INT NOT NULL AUTO_INCREMENT,
-  nombre VARCHAR(45) NOT NULL,
-  categoria_id VARCHAR(45) NOT NULL,
-  categorias_id INT NOT NULL,
-  PRIMARY KEY (id),
-  INDEX fk_Subcategorias_categorias_id (categorias_id ASC),
-  CONSTRAINT fk_Subcategorias_categorias
-    FOREIGN KEY (categorias_id)
-    REFERENCES categorias(id)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION
+  -- TINYINT(1) es el estándar para booleanos (1=activo, 0=inactivo).
+  -- El nombre "descripcion" ahora coincide con el tipo de dato TEXT.
+  descripcion TEXT NULL,
+  activo BOOLEAN NOT NULL DEFAULT 1,
+  -- Campos para auditoría, muy recomendables.
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE subcategorias (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(200) NOT NULL,
+  categoria_id INT NOT NULL,
+  -- Eliminamos la columna VARCHAR redundante.
+  CONSTRAINT fk_subcategoria_categoria
+    FOREIGN KEY (categoria_id) REFERENCES categorias(id)
+) ENGINE=InnoDB;
+
+-- Esta es la tabla central. No debe tener IDs de tablas de movimiento.
+CREATE TABLE productos (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(255) NOT NULL,
+  detalle TEXT NULL,
+  -- Usamos un ENUM para estados, es más claro que un número.
+  estado ENUM('disponible', 'alquilado', 'en_mantenimiento', 'retirado') NOT NULL DEFAULT 'disponible',
+  stock INT NOT NULL DEFAULT 0, -- El stock es un atributo del producto.
+  subcategoria_id INT NOT NULL,
+  CONSTRAINT fk_producto_subcategoria
+    FOREIGN KEY (subcategoria_id) REFERENCES subcategorias(id)
+) ENGINE=InnoDB;
+
+CREATE TABLE proveedores (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(200) NOT NULL,
+  telefono VARCHAR(50) NULL,
+  direccion TEXT NULL,
+  activo BOOLEAN NOT NULL DEFAULT 1
+) ENGINE=InnoDB;
+
+-- Esta tabla representa la entrada de productos al inventario.
+CREATE TABLE entradas_inventario (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  producto_id INT NOT NULL,
+  proveedor_id INT NULL, -- Puede haber entradas que no vengan de un proveedor.
+  cantidad INT NOT NULL,
+  -- La fecha se almacena con el tipo correcto.
+  fecha_entrada DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_entrada_producto
+    FOREIGN KEY (producto_id) REFERENCES productos(id),
+  CONSTRAINT fk_entrada_proveedor
+    FOREIGN KEY (proveedor_id) REFERENCES proveedores(id)
 ) ENGINE=InnoDB;
 
 
--- -----------------------------------------------------
--- Table alquiler
--- -----------------------------------------------------
-CREATE TABLE  alquiler (
-  id INT NOT NULL AUTO_INCREMENT,
-  id_cliente VARCHAR(45) NOT NULL,
-  fecha_salida VARCHAR(45) NOT NULL,
-  id_producto VARCHAR(45) NOT NULL,
-  PRIMARY KEY (id))
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table salida
--- -----------------------------------------------------
-CREATE TABLE  salida (
-  id INT NOT NULL,
-  serial_producto VARCHAR(45) NOT NULL,
-  fecha_de_creacion VARCHAR(45) NOT NULL,
-  alquiler_id INT NOT NULL,
-  PRIMARY KEY (id),
-  INDEX fk_salida_alquiler_id (alquiler_id ASC),
-  CONSTRAINT fk_salida_alquiler
-    FOREIGN KEY (alquiler_id)
-    REFERENCES alquiler(id)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table proveedores
--- -----------------------------------------------------
-CREATE TABLE  proveedores (
-  id INT(10) NOT NULL AUTO_INCREMENT,
+CREATE TABLE clientes (
+  id INT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(200) NOT NULL,
-  telefono VARCHAR(200) NOT NULL,
-  dirección TEXT NOT NULL,
-  estado DATE NOT NULL,
-  PRIMARY KEY (id))
-ENGINE = InnoDB;
+  telefono VARCHAR(50) NULL,
+  email VARCHAR(100) UNIQUE NULL,
+  direccion TEXT NULL
+) ENGINE=InnoDB;
+
+-- Un alquiler es un "contrato" o "evento" principal.
+CREATE TABLE alquileres (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  cliente_id INT NOT NULL,
+  -- Fechas con tipos correctos.
+  fecha_salida DATETIME NOT NULL,
+  fecha_retorno_esperada DATE NOT NULL,
+  fecha_retorno_real DATETIME NULL, -- NULL hasta que se devuelve.
+  estado ENUM('activo', 'completado', 'atrasado') NOT NULL DEFAULT 'activo',
+  CONSTRAINT fk_alquiler_cliente
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+) ENGINE=InnoDB;
+
+-- Una tabla intermedia para detallar qué productos se alquilaron en cada alquiler.
+-- Esto permite alquilar varios productos en una sola transacción.
+CREATE TABLE alquiler_detalles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    alquiler_id INT NOT NULL,
+    producto_id INT NOT NULL,
+    cantidad INT NOT NULL DEFAULT 1,
+    precio_alquiler DECIMAL(10, 2) NOT NULL,
+    CONSTRAINT fk_detalle_alquiler
+        FOREIGN KEY (alquiler_id) REFERENCES alquileres(id),
+    CONSTRAINT fk_detalle_producto
+        FOREIGN KEY (producto_id) REFERENCES productos(id)
+) ENGINE=InnoDB;
 
 
--- -----------------------------------------------------
--- Table entradas
--- -----------------------------------------------------
-CREATE TABLE  entradas (
-  id INT NOT NULL AUTO_INCREMENT,
-  id_provedor VARCHAR(45) NOT NULL,
-  id_prodcuto VARCHAR(45) NOT NULL,
-  proveedores_id INT(10) NOT NULL,
-  PRIMARY KEY (id),
-  INDEX fk_entradas_proveedores_id (proveedores_id ASC),
-  CONSTRAINT fk_entradas_proveedores
-    FOREIGN KEY (proveedores_id)
-    REFERENCES proveedores(id)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+CREATE TABLE mantenimientos (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  producto_id INT NOT NULL,
+  -- Opcional: Para saber qué técnico realizó el mantenimiento.
+  -- usuario_id_tecnico INT NULL,
+  tipo_mantenimiento VARCHAR(100) NOT NULL,
+  descripcion TEXT NOT NULL,
+  costo DECIMAL(10, 2) NOT NULL,
+  fecha_inicio DATE NOT NULL,
+  fecha_fin DATE NULL,
+  CONSTRAINT fk_mantenimiento_producto
+    FOREIGN KEY (producto_id) REFERENCES productos(id)
+  -- CONSTRAINT fk_mantenimiento_usuario FOREIGN KEY (usuario_id_tecnico) REFERENCES usuarios(id)
+) ENGINE=InnoDB;
 
+CREATE TABLE roles (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre_rol VARCHAR(50) NOT NULL UNIQUE
+) ENGINE=InnoDB;
 
--- -----------------------------------------------------
--- Table Productos
--- -----------------------------------------------------
-CREATE TABLE  Productos (
-  id INT NOT NULL AUTO_INCREMENT,
-  nombre_productos VARCHAR(255) NOT NULL,
-  detalle TEXT NOT NULL,
-  estado TINYINT NOT NULL,
-  stock_id INT NOT NULL,
-  subcategorias_id INT NOT NULL,
-  salida_id INT NOT NULL,
-  entradas_id INT NOT NULL,
-  PRIMARY KEY (id),
-  INDEX fk_productos_subcategorias_id (subcategorias_id ASC),
-  INDEX fk_productos_salida_id (salida_id ASC),
-  INDEX fk_productos_entradas_id (entradas_id ASC),
-  CONSTRAINT fk_productos_subcategorias
-    FOREIGN KEY (subcategorias_id)
-    REFERENCES subcategorias(id)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT fk_productos_salida
-    FOREIGN KEY (salida_id)
-    REFERENCES salida(id)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT fk_productos_entrada
-    FOREIGN KEY (entradas_id)
-    REFERENCES entradas(id)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table roles
--- -----------------------------------------------------
-CREATE TABLE  roles (
-  id INT(10) NOT NULL AUTO_INCREMENT,
-  nombre_de_rol VARCHAR(200) NOT NULL,
-  PRIMARY KEY (id))
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table clientes
--- -----------------------------------------------------
-CREATE TABLE  clientes (
-  id INT(10) NOT NULL,
-  stock_id INT NOT NULL,
-  alquiler_id INT NOT NULL,
-  PRIMARY KEY (id),
-  INDEX fk_clientes_alquiler_id (alquiler_id ASC),
-  CONSTRAINT fk_clientes_alquiler
-    FOREIGN KEY (alquiler_id)
-    REFERENCES alquiler(id)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table Mantenimiento
--- -----------------------------------------------------
-CREATE TABLE  Mantenimiento (
-  id INT NOT NULL AUTO_INCREMENT,
-  tipo_mantenimiento VARCHAR(45) NOT NULL,
-  descripción TEXT NOT NULL,
-  costo FLOAT NOT NULL,
-  estado INT NOT NULL,
-  Productos_id INT NOT NULL,
-  PRIMARY KEY (id),
-  INDEX fk_Mantenimiento_Productos_id (Productos_id ASC),
-  CONSTRAINT fk_Mantenimiento_Productos
-    FOREIGN KEY (Productos_id)
-    REFERENCES Productos(id)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
-
--- -----------------------------------------------------
--- Table usuarios
--- -----------------------------------------------------
 CREATE TABLE usuarios (
-  id INT NOT NULL AUTO_INCREMENT,
+  id INT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(100) NOT NULL,
-  correo_electronico VARCHAR(100) NOT NULL,
-  contraseña VARCHAR(100) NOT NULL,
-  recordar_token VARCHAR(100) NOT NULL,
-  roles_id INT NOT NULL,
-  direccion VARCHAR(45) NOT NULL,
-  clientes_id INT NOT NULL,
-  reporte_id INT NOT NULL,
-  mantenimiento_id INT NOT NULL,
-  mantenimiento_productos_id INT NOT NULL,
-  PRIMARY KEY (id),
-  INDEX fk_usuarios_roles_id (roles_id),
-  INDEX fk_usuarios_clientes_id (clientes_id),
-  INDEX fk_usuarios_mantenimiento_id (mantenimiento_id, mantenimiento_productos_id),
-  CONSTRAINT fk_usuarios_roles
-    FOREIGN KEY (roles_id)
-    REFERENCES roles(id)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION
+  correo_electronico VARCHAR(100) NOT NULL UNIQUE,
+  -- Columna para el HASH de la contraseña.
+  password_hash VARCHAR(255) NOT NULL,
+  rol_id INT NOT NULL,
+  -- Un usuario puede estar asociado a un cliente, pero no tiene por qué.
+  cliente_id INT NULL,
+  activo BOOLEAN NOT NULL DEFAULT 1,
+  -- Se eliminan las claves foráneas confusas.
+  CONSTRAINT fk_usuario_rol
+    FOREIGN KEY (rol_id) REFERENCES roles(id),
+  CONSTRAINT fk_usuario_cliente
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id)
 ) ENGINE=InnoDB;
 
 
