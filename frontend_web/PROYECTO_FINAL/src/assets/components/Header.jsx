@@ -1,6 +1,6 @@
 import React from 'react'
 
-function Header(){
+export default function Header(){
   return (
     <div className='bg-white/-80 drak:bg-slate-900/80 backdrop-blur-2x1xl border-b border-slate-200/50 dark:border-slate-700/50 px-6 py-4'>
         <div className='flex items-center space-x-4'>
@@ -20,7 +20,6 @@ function Header(){
             <input type="text"placeholder='Search Anything' className='w-full pl-10 pr-4'/>
         </div>
     </div>
+    </div>
     );
 }
-
-export default header
