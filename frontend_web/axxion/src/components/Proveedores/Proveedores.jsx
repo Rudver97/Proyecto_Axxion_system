@@ -2,7 +2,7 @@ import { Router } from "react-router-dom"
 import { iconos } from "../../assets/iconos"
 import Navigate from "../Navigate/Navigate"
 
-const Categories = () => {
+const Proveedores = () => {
   return (
     <div className="w-screen h-screen flex">
     <Navigate/> 
@@ -15,4 +15,4 @@ const Categories = () => {
   )
 }
 
-export default Categories
+export default Proveedores
