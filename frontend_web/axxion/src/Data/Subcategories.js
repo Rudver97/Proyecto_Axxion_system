@@ -1,4 +1,4 @@
-export const Subcategoria =[
-    {id:"1", name:"Portátil asus con intel i5"},
-    {id:"2", name:"Procesador asus"},
+export const subcategories =[
+    {id:"1", nombre:"Portátil asus con intel i5"},
+    {id:"2", nombre:"Procesador asus"},
 ]

@@ -47,9 +47,17 @@ function Navigate() {
             </li>
             <li>
               <NavLink
+                to={"/Subcategories"}
+                className={`flex px-3 py-2 gap-5 rounded-md outline-none transition duration-300 hover:bg-slate-200`}>
+                    <img src={iconos.subcategoria} alt="" />
+                    <span>Subcategories</span>
+                </NavLink>
+            </li>
+            <li>
+              <NavLink
               to={"/Alquiler"}
               className={`flex px-3 py-2 gap-5 rounded-md outline-none transition duration-300 hover:bg-slate-200`}>
-                <img src={iconos.Alquiler} alt=""/>
+                <img src={iconos.alquiler} alt=""/>
                 <span>Alquiler</span>
               </NavLink>
             </li>
@@ -65,7 +73,7 @@ function Navigate() {
                   <NavLink
                   to={"/Mantenimiento"}
                   className={`flex px-3 py-2 gap-5 rounded-md outline-none transition duration-300 hover:bg-slate-200`}>
-                  <img src={iconos.Mantenimiento} alt="" />
+                  <img src={iconos.mantenimiento} alt="" />
                   <span>Mantenimiento</span>
                   </NavLink>
                 </li>
@@ -73,7 +81,7 @@ function Navigate() {
                     <NavLink
                     to={"/Clientes"}
                     className={`flex px-3 py-2 gap-5 rounded-md outline-none transition duration-300 hover:bg-slate-200`}>
-                    <img src={iconos.Clientes} alt="" />
+                    <img src={iconos.clientes} alt="" />
                     <span>Clientes</span>
                     </NavLink>
                   </li>

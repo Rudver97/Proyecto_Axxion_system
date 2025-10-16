@@ -1,16 +1,16 @@
 import { Router } from "react-router-dom"
-import { iconos } from "../../assets/iconos";
-import SearchBar from "../Buscar/SearchBar";
-import { categories } from "../../Data/categories";
-import Navigate from "../Navigate/Navigate";
+import { iconos } from "../../assets/iconos"
+import Navigate from "../Navigate/Navigate"
+import {productsData } from "../../Data/products";
+import SearchBar from "../Buscar/SearchBar"
 
-const Categories = () => {
+const Productos = () => {
     return (
         <div className="w-screen max-h-screen h-screen grid grid-cols-[200px_1fr]">
             <Navigate />
             <section className="max-w-full h-full overflow-hidden">
                 <section className="max-h-[10%] flex items-center p-3 justify-between">
-                    <p className="font-semibold">Categories</p>
+                    <p className="font-semibold">Productos</p>
                     <SearchBar/>
                 </section>
                 <section className="w-full max-h-[90%] overflow-x-auto overflow-y-auto p-2">
@@ -24,22 +24,40 @@ const Categories = () => {
                                 nombre
                             </th>
                             <th className="px-6 py-3 text-center">
-                                Descripcion
+                                modelo
                             </th>
-                          </tr>
+                            <th className="px-6 py-3 text-center">
+                                serial
+                            </th>
+                            <th className="px-6 py-3 text-center">
+                                marca
+                            </th>
+                            <th className="px-6 py-3 text-center">
+                                tiempo
+                            </th>
+                        </tr>
                         </thead>
                         <tbody>
-                            {categories.map((category) => (
-                                <tr key={category.id}>
-                                      <th className=" text-center">
-                                        {category.id}
-                                      </th>
-                                      <th className=" text-center">
-                                        {category.nombre}
-                                      </th>
-                                      <th className=" text-center">
-                                        {category.Descripcion}
-                                      </th>
+                            {productsData.map((Productos) => (
+                                <tr key={Productos.id}>
+                                    <th className=" text-center">
+                                        {Productos.id}
+                                    </th>
+                                    <th className=" text-center">
+                                        {Productos.nombre}
+                                    </th>
+                                    <th className=" text-center">
+                                        {Productos.modelo}
+                                    </th>
+                                    <th className="text-center">
+                                        {Productos.serial}
+                                    </th>
+                                        <th className="text-center">
+                                        {Productos.marca}
+                                        </th>
+                                        <th className="text-center">
+                                        {Productos.tiempo}
+                                        </th>
                                     <th className="w-full h-full flex items-center justify-center gap-5 px-6 py-4">
                                         <button>
                                             <img src={iconos.Eliminar} alt="eliminar" className="w-6 h-6"/>
@@ -58,4 +76,4 @@ const Categories = () => {
     );
 }
 
-export default Categories;
+export default Productos;
