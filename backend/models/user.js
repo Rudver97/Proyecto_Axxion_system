@@ -45,23 +45,24 @@ User.findByEmail = (correo_electrónico, result) => {
 
 User.create = async (user, result) => {
     const hash = await bcrypt.hash(user.contraseña, 10)  
-    const validRoles = ['admin', 'seller', 'customer', 'user'];
-    const role = validRoles.includes(user.role) ? user.role : 'user';
-    const sql = `INSERT INTO usuario(
+    const validRoles = [1,2];
+    const role = validRoles.includes(user.role) ? user.role : 2;
+    const sql = `INSERT INTO usuarios (
                     nombre,
-                    correo_electronico,
+                    correo,
                     contraseña,
                     rol_id, 
                     direccion,
-                ) VALUES (?,?,?,?,?)`;
+                    telefono
+                ) VALUES (?,?,?,?,?,?)`;
     db.query(sql,
         [
             user.nombre,
-            user.correo_electronico,
+            user.correo,
             hash,
             role,
-            user.contraseña,
             user.direccion,
+            user.telefono,
         ], (err, res) => {
             if (err) {
                 console.log('Error al crear al Usuario: ', err);
@@ -84,9 +85,9 @@ User.update = async (user, result) => {
         values.push(hash);
     }
 
-    if (user.correo_electronico) {
-        fields.push("correo_electronico = ?");
-        values.push(user.correo_electrónico);
+    if (user.correo) {
+        fields.push("correo = ?");
+        values.push(user.correo);
     }
     if (user.nombre) {
         fields.push("nombre = ?");
@@ -99,6 +100,10 @@ User.update = async (user, result) => {
     if (user.rol_id) {
         fields.push("rol_id = ?");
         values.push(user.rol_id);
+    }
+    if (user.telefono) {
+        fields.push("telefono = ?");
+        values.push(user.telefono);
     }
 
     fields.push("updated_at = ?");

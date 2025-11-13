@@ -19,4 +19,13 @@ npm install
 npm start
 
 
+## como iniciar api
+``` bash
+1. entrar en la carpeta backend
+cd backend
+
+2.  Iniciar Servidor
+    node index.js
+```
+
 

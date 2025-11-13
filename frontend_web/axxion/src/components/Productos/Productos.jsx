@@ -11,7 +11,13 @@ const Productos = () => {
             <section className="max-w-full h-full overflow-hidden">
                 <section className="max-h-[10%] flex items-center p-3 justify-between">
                     <p className="font-semibold">Productos</p>
-                    <SearchBar/>
+                    <section className="flex items-center gap-3">
+                        <button className="flex items-center bg-slate-100 px-4 py-3 rounded-lg gap-2">
+                            <img src={iconos.Agregar} alt="agregar" className="w-6 h-6"/>
+                            <p>Agregar Producto</p>
+                        </button>
+                        <SearchBar/>
+                    </section>
                 </section>
                 <section className="w-full max-h-[90%] overflow-x-auto overflow-y-auto p-2">
                     <table className="w-full max-h-full text-sm text-left border text-gray-500 dark:text-gray-400 overflow-x-auto overflow-y-auto">

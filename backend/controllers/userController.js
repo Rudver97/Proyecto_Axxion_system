@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const keys = require('../config/keys');
 
-module.export = {
+module.exports = {
     login(req, res) {
         const correo_electronico = req.body.correo_electronico;
         const contraseña = req.body.contraseña;
@@ -102,7 +102,7 @@ module.export = {
         const user = req.body;
 
         if (!user.rol_id) {
-            user.rol_id = 'user';
+            user.rol_id = 1;
         }
 
         User.create(user, (err, data) => {
