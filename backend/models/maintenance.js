@@ -1,20 +1,12 @@
 const db = require('../config/config');
 const bcrypt = require('bcryptjs');
-const db = require('../config/db'); // conexión a la base de datos
-const Maintenance = {};
+const maintenance = {};
 
 // Obtener todos los mantenimientos
-Maintenance.findAll = (result) => {
+maintenance.findAll = (result) => {
     const sql = `
         SELECT 
-            id,
-            tipo_mantenimiento,
-            descripcion,
-            costo,
-            estado,
-            productos_id,
-            created_at,
-            updated_at
+            *
         FROM mantenimiento
     `;
     db.query(sql, (err, maintenances) => {
@@ -29,7 +21,7 @@ Maintenance.findAll = (result) => {
 };
 
 // Obtener mantenimiento por ID
-Maintenance.findById = (id, result) => {
+maintenance.findById = (id, result) => {
     const sql = `SELECT * FROM mantenimiento WHERE id = ?`;
     db.query(sql, [id], (err, maintenance) => {
         if (err) {
@@ -44,7 +36,7 @@ Maintenance.findById = (id, result) => {
 };
 
 // Crear mantenimiento
-Maintenance.create = (maintenance, result) => {
+maintenance.create = (maintenance, result) => {
     const sql = `
         INSERT INTO mantenimiento (
             tipo_mantenimiento,
@@ -72,7 +64,7 @@ Maintenance.create = (maintenance, result) => {
 };
 
 // Actualizar mantenimiento
-Maintenance.update = (maintenance, result) => {
+maintenance.update = (maintenance, result) => {
     const fields = [];
     const values = [];
 
@@ -113,7 +105,7 @@ Maintenance.update = (maintenance, result) => {
 };
 
 // Eliminar mantenimiento
-Maintenance.delete = (id, result) => {
+maintenance.delete = (id, result) => {
     const sql = `DELETE FROM mantenimiento WHERE id = ?`;
     db.query(sql, [id], (err, res) => {
         if (err) {
@@ -126,4 +118,4 @@ Maintenance.delete = (id, result) => {
     });
 };
 
-module.exports = Maintenance;
+module.exports = maintenance;

@@ -20,7 +20,9 @@ SET time_zone = "+00:00";
 --
 -- Base de datos: `inventario_axxion`
 --
-
+DROP DATABASE IF EXISTS `inventario_axxion`;
+CREATE DATABASE `inventario_axxion` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+USE `inventario_axxion`;
 -- --------------------------------------------------------
 
 --
@@ -46,7 +48,7 @@ CREATE TABLE `categorias` (
   `id` int(10) NOT NULL,
   `nombre` varchar(200) NOT NULL,
   `estado` tinyint(10) NOT NULL,
-  `descripción` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `descripcion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- --------------------------------------------------------
@@ -55,9 +57,7 @@ CREATE TABLE `categorias` (
 -- Estructura de tabla para la tabla `clientes`
 --
 
-CREATE TABLE `clientes` (
-  `id` int(10) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+
 
 -- --------------------------------------------------------
 
@@ -140,7 +140,7 @@ CREATE TABLE `proveedores` (
 
 CREATE TABLE `roles` (
   `id` int(10) NOT NULL,
-  `nombre de rol` varchar(200) NOT NULL
+  `nombre` varchar(200) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 -- --------------------------------------------------------
@@ -198,12 +198,6 @@ ALTER TABLE `alquiler`
 -- Indices de la tabla `categorias`
 --
 ALTER TABLE `categorias`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indices de la tabla `clientes`
---
-ALTER TABLE `clientes`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -329,14 +323,11 @@ ALTER TABLE `usuarios`
 -- Filtros para la tabla `alquiler`
 --
 ALTER TABLE `alquiler`
-  ADD CONSTRAINT `fk_alquiler_clientes` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+  ADD CONSTRAINT `fk_alquiler_usuarios` FOREIGN KEY (`cliente_id`) REFERENCES `usuarios` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 --
 -- Filtros para la tabla `clientes`
 --
-ALTER TABLE `clientes`
-  ADD CONSTRAINT `fk_clientes_usuarios` FOREIGN KEY (`id`) REFERENCES `usuarios` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
 --
 -- Filtros para la tabla `detalles_entradas`
 --
@@ -354,7 +345,7 @@ ALTER TABLE `entradas`
 --
 ALTER TABLE `mantenimiento`
   ADD CONSTRAINT `fk_Mantenimiento_Productos1` FOREIGN KEY (`Productos_id`) REFERENCES `productos` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_Mantenimiento_clientes` FOREIGN KEY (`cliente_id`) REFERENCES `clientes` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+  ADD CONSTRAINT `fk_Mantenimiento_usuarios` FOREIGN KEY (`cliente_id`) REFERENCES `usuarios` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 --
 -- Filtros para la tabla `productos`

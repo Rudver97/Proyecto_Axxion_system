@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const keys = require('../config/keys');
-const Product = require('../models/ProductController');
+const Product = require('../models/Product');
 
 // Controlador de productos
 const ProductController = {

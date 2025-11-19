@@ -1,26 +1,11 @@
 const db = require('../config/config');
-const bcrypt = require('bcryptjs');
-const { Product } = require('../controllers/ProductController');
-const { result } = require('lodash');
-const db = require('../config/db'); // conexión a la BD
 
 const Product = {};
 
 // Obtener todos los productos
 Product.findAll = (result) => {
     const sql = `
-        SELECT 
-            id,
-            nombre,
-            detalle,
-            estado,
-            direccion,
-            stok_id,
-            subcategorias_id,
-            salida_id,
-            entradas_id,
-            updated_at
-        FROM producto
+        SELECT * FROM productos
     `;
     db.query(sql, (err, products) => {
         if (err) {
@@ -37,17 +22,8 @@ Product.findAll = (result) => {
 Product.findById = (id, result) => {
     const sql = `
         SELECT 
-            id,
-            nombre,
-            detalle,
-            estado,
-            direccion,
-            stok_id,
-            subcategorias_id,
-            salida_id,
-            entradas_id,
-            updated_at
-        FROM producto
+        *
+        FROM productos
         WHERE id = ?
     `;
     db.query(sql, [id], (err, product) => {
