@@ -1,10 +1,12 @@
 const http = require('http');
 const app = require('./server');
+require('./init/createAdmin')();
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3333;
 const host = process.env.HOST || 'localhost';
 
 app.set('port', port);
+app.use('/api/auth', require('./routes/authRoutes'));
 
 const server = http.createServer(app);
 

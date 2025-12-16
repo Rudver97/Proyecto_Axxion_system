@@ -15,6 +15,7 @@ Sitio Web: https://tracklinker.vercel.app
 ```bash
 cd frontend_web
 cd react_frontend
+cd axxion
 npm install
 npm start
 
