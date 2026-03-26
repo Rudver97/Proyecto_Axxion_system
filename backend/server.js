@@ -14,6 +14,7 @@ const entradaRoutes = require('./routes/entradaRoutes');
 const salidaRoutes = require('./routes/salidaRoutes');
 const rolesRoutes = require('./routes/rolesRoutes');
 const clientesRoutes = require('./routes/clientesRoutes');
+const authRoutes = require('./routes/authRoutes');
 const app = express();
 
 // Middlewares
@@ -27,6 +28,7 @@ app.get('/', (req, res) => res.send("API Inventario Axxion funcionando"));
 
 // REGISTRO DE RUTAS
 app.use('/api/usuarios', usuariosRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/productos', productosRoutes);
 app.use('/api/mantenimiento', mantenimientoRoutes);
 app.use('/api/proveedores', proveedoresRoutes);
