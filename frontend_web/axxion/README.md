@@ -1,7 +1,3 @@
-# Tracklinker
-
-Sitio Web: https://tracklinker.vercel.app
-
 ## Como contribuir
 
 1. Crea un fork del repositorio nuevamente y elimina el anterior para poder tener esta rama nueva, Si tienes un fork desde antes borralo y créalo nuevamente. 
@@ -14,7 +10,6 @@ Sitio Web: https://tracklinker.vercel.app
 
 ```bash
 cd frontend_web
-cd react_frontend
 cd axxion
 npm install
 npm start
