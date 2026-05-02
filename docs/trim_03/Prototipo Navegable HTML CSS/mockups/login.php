@@ -1,5 +1,6 @@
+
 <?php
-// Simulación de usuarios
+
 $users = [
     ["email" => "admin@demo.com", "password" => "admin123"],
     ["email" => "aux@demo.com", "password" => "aux123"],

@@ -25,6 +25,7 @@ app.use(cors());
 
 // ENDPOINTS
 app.get('/', (req, res) => res.send("API Inventario Axxion funcionando"));
+console.log("API Inventario Axxion funcionando");
 
 // REGISTRO DE RUTAS
 app.use('/api/usuarios', usuariosRoutes);

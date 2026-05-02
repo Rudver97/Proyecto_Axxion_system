@@ -1,4 +1,4 @@
-const usuarios = require('../models/usuarios');  // <--- IMPORTACIÓN CORRECTA
+const usuarios = require('../models/usuarios'); 
 
 exports.getAllUsuarios = (req, res) => {
   usuarios.getAll((err, data) => {
@@ -15,11 +15,16 @@ exports.getUsuarioById = (req, res) => {
   });
 };
 
-exports.createUsuario = (req, res) => {
-  usuarios.create(req.body, (err, result) => {
-    if (err) return res.status(500).json({ error: err });
-    res.json({ message: 'Usuario creado', id: result.insertId });
-  });
+exports.createUsuario = async (req, res) => {
+  try {
+    usuarios.create(req.body, (err, result) => {
+      if (err) return res.status(500).json({ error: err });
+      res.json({ message: 'Usuario creado', id: result.insertId });
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 exports.updateUsuario = (req, res) => {

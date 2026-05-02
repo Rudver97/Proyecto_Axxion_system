@@ -6,8 +6,9 @@ exports.login = (req, res) => {
   const { correo_electronico, contraseña } = req.body;
 
   db.query(
-    `SELECT u.*, r.nombre_rol 
-     FROM usuarios u 
+    `SELECT
+      u.contraseña
+     FROM usuarios as u
      JOIN roles r ON u.rol_id = r.id 
      WHERE u.correo_electronico = ?`,
     [correo_electronico],

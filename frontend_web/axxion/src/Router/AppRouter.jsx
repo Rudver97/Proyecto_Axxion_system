@@ -2,17 +2,17 @@ import React from "react";
 import { Routes, Route } from "react-router-dom";
 
 // Importar páginas
-import Login from "../pages/Login";
-import Dashboard from "../pages/Dashboard";
-import Usuarios from "../pages/Usuarios";
-import Productos from "../pages/Productos";
-import Roles from "../pages/Roles";
-import Clientes from "../pages/Clientes";
-import Mantenimiento from "../pages/Mantenimiento";
-import Categorias from "../pages/Categorias";
-import Subcategorias from "../pages/Subcategorias";
-import Entradas from "../pages/Entradas";
-import Proveedores from "../pages/Proveedores";
+import Login from "../modules/login/Login";
+import Dashboard from "../modules/dashboard/Dashboard";
+import Usuarios from "../modules/usuarios/Usuarios";
+import Productos from "../modules/productos/Productos";
+import Roles from "../modules/roles/Roles";
+import Clientes from "../modules/clientes/Clientes";
+import Mantenimiento from "../modules/mantenimiento/Mantenimiento";
+import Categorias from "../modules/categorias/Categorias";
+import Subcategorias from "../modules/subcategorias/Subcategorias";
+import Entradas from "../modules/entradas/Entradas";
+import Proveedores from "../modules/proveedores/Proveedores";
 
 function AppRouter() {
   return (
@@ -33,6 +33,3 @@ function AppRouter() {
 }
 
 export default AppRouter;
-
-
-

@@ -16,22 +16,22 @@ exports.getById = (id, callback) => {
 };
 
 exports.create = (data, callback) => {
-  const { nombre_producto, detalle, estado, stock, subcategorias_id, entradas_id } = data;
+  const { nombre, subcategorias_id, entradas_id } = data;
   const sql = `
-    INSERT INTO productos (nombre_producto, detalle, estado, stock, subcategorias_id, entradas_id)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO productos (nombre, subcategorias_id, entradas_id)
+    VALUES (?, ?, ?, ?)
   `;
-  db.query(sql, [nombre_producto, detalle, estado, stock, subcategorias_id, entradas_id], callback);
+  db.query(sql, [nombre, subcategorias_id, entradas_id], callback);
 };
 
 exports.update = (id, data, callback) => {
-  const { nombre_producto, detalle, estado, stock, subcategorias_id, entradas_id } = data;
+  const { nombre, detalle, estado, subcategorias_id, entradas_id } = data;
   const sql = `
     UPDATE productos
-    SET nombre_producto=?, detalle=?, estado=?, stock=?, subcategorias_id=?, entradas_id=?
+    SET nombre=?, subcategorias_id=?, entradas_id=?
     WHERE id=?
   `;
-  db.query(sql, [nombre_producto, detalle, estado, stock, subcategorias_id, entradas_id, id], callback);
+  db.query(sql, [nombre, subcategorias_id, entradas_id, id], callback);
 };
 
 exports.delete = (id, callback) => {
